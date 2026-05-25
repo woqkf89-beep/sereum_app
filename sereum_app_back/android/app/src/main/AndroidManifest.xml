@@ -1,0 +1,47 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.sereum_app">
+
+    <!-- 네트워크 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Google Play 인앱결제 -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <application
+        android:name="${applicationName}"
+        android:label="관령이의 소름사주"
+        android:icon="@mipmap/ic_launcher">
+
+        <!-- AdMob App ID (앱ID: ~ 가 들어간 형태) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6908844178365643~6966941284" />
+
+        <!-- Flutter 엔진/테마 메타데이터 (권장 기본값) -->
+        <meta-data
+            android:name="io.flutter.embedding.android.NormalTheme"
+            android:resource="@style/NormalTheme" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- Flutter embedding 버전 -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+    </application>
+</manifest>

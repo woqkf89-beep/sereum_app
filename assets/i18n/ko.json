@@ -1,0 +1,36 @@
+{
+  "brand": "FATE SIGNAL",
+  "today_signal": "오늘의 신호",
+  "today_hint": "한 장면으로 오늘의 운명을 보여줄게요.",
+  "read_more": "이야기 보기",
+
+  "ai_session": "AI 상담",
+  "ai_session_sub": "오라클에게 묻기",
+
+  "compat_title": "궁합 보기",
+  "compat_sub": "케미를 한 번에",
+
+  "special_title": "특수 운세",
+  "special_sub": "인사이트 해금",
+
+  "premium_title": "FATE SIGNAL 프리미엄",
+  "premium_sub": "모든 기능 해금 • 제한 없음",
+  "go_premium": "프리미엄 가기",
+
+  "offers_title": "특별 혜택",
+
+  "nav_home": "홈",
+  "nav_fortunes": "운세",
+  "nav_chat": "채팅",
+  "nav_premium": "프리미엄",
+
+  "chat_title": "오라클 상담",
+  "chat_hint": "오라클에게 물어봐…",
+  "points": "포인트",
+  "ask_cost": "질문 1회 = 1포인트",
+
+  "premium_points_title": "포인트 충전",
+  "premium_points_sub": "AI 상담 / 특수 운세 / 궁합에 사용",
+  "watch_ad": "광고 보기",
+  "buy": "구매"
+}

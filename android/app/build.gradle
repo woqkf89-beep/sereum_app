@@ -1,0 +1,47 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    // ✅ 앱 고유 ID 통일 (기존 앱과 100% 분리)
+    namespace = "com.sereum.fatesignal"
+
+    compileSdk = 34
+
+    // ✅ NDK 고정
+    ndkVersion "25.1.8937393"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    defaultConfig {
+        // ✅ 여기 중요: 설치/업데이트/충돌 기준
+        applicationId = "com.sereum.fatesignal"
+
+        minSdk = 23
+        targetSdk = 34
+
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}

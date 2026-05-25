@@ -1,0 +1,36 @@
+{
+  "brand": "FATE SIGNAL",
+  "today_signal": "Today's Signal",
+  "today_hint": "Your destiny revealed in one scene.",
+  "read_more": "READ MORE",
+
+  "ai_session": "AI Session",
+  "ai_session_sub": "Ask the Oracle",
+
+  "compat_title": "Compatibility",
+  "compat_sub": "Check your match",
+
+  "special_title": "Special Fortunes",
+  "special_sub": "Unlock insights",
+
+  "premium_title": "FATE SIGNAL PREMIUM",
+  "premium_sub": "Unlock all features • No limits",
+  "go_premium": "GO PREMIUM",
+
+  "offers_title": "Exclusive Offers",
+
+  "nav_home": "Home",
+  "nav_fortunes": "Fortunes",
+  "nav_chat": "Chat",
+  "nav_premium": "Premium",
+
+  "chat_title": "Oracle Chat",
+  "chat_hint": "Ask the Oracle...",
+  "points": "points",
+  "ask_cost": "1 question = 1 point",
+
+  "premium_points_title": "Top up points",
+  "premium_points_sub": "Use for AI session / special fortunes / compatibility",
+  "watch_ad": "WATCH AD",
+  "buy": "BUY"
+}
