@@ -10,11 +10,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const App(),
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, theme: ThemeData.dark(), home: const App());
   }
 }
 
@@ -27,136 +23,120 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   int tab = 0;
   int hearts = 10;
-
-  String resultTitle = '오늘의 운세';
-  String preview = '아직 운세를 보지 않았습니다.';
-  String fullResult = '';
-  bool detailOpen = false;
   bool loading = false;
+  bool detailOpen = false;
+  String title = '사주';
+  String preview = '운세를 선택해주세요.';
+  String full = '';
 
   final name = TextEditingController();
   final birth = TextEditingController();
   final time = TextEditingController();
-  final gender = TextEditingController();
+  String gender = '남자';
+  bool lunar = false;
 
-  bool isLunar = false;
-
-  final partnerName = TextEditingController();
-  final partnerBirth = TextEditingController();
-  final partnerTime = TextEditingController();
-  final partnerGender = TextEditingController();
-  bool partnerLunar = false;
+  final pName = TextEditingController();
+  final pBirth = TextEditingController();
+  final pTime = TextEditingController();
+  String pGender = '여자';
+  bool pLunar = false;
 
   final breakupDate = TextEditingController();
   final contactStatus = TextEditingController();
   final breakupReason = TextEditingController();
 
+  bool get mineEmpty => name.text.trim().isEmpty || birth.text.trim().isEmpty || time.text.trim().isEmpty || gender.trim().isEmpty;
+  bool get partnerEmpty => pName.text.trim().isEmpty || pBirth.text.trim().isEmpty || pTime.text.trim().isEmpty || pGender.trim().isEmpty;
+
+  void msg(String s) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
+
   Future<void> pickDate(TextEditingController c) async {
-    final d = await showDatePicker(
-      context: context,
-      initialDate: DateTime(1990, 1, 1),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (d != null) {
-      c.text = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-    }
+    final d = await showDatePicker(context: context, initialDate: DateTime(1990, 1, 1), firstDate: DateTime(1900), lastDate: DateTime.now());
+    if (d != null) c.text = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
   Future<void> pickTime(TextEditingController c) async {
-    final t = await showTimePicker(
-      context: context,
-      initialTime: const TimeOfDay(hour: 3, minute: 0),
-    );
-    if (t != null) {
-      c.text = '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-    }
+    final t = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 3, minute: 0));
+    if (t != null) c.text = '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<void> requestFortune(String topic) async {
-    bool emptyMine = name.text.trim().isEmpty || birth.text.trim().isEmpty || time.text.trim().isEmpty || gender.text.trim().isEmpty;
-    bool emptyPartner = partnerName.text.trim().isEmpty || partnerBirth.text.trim().isEmpty || partnerTime.text.trim().isEmpty || partnerGender.text.trim().isEmpty;
-
+  Future<void> fortune(String topic) async {
     if (topic == '심리상담') {
       setState(() => tab = 2);
       return;
     }
 
-    if (['사주','연애운','재물운','직업운','신년운세'].contains(topic) && emptyMine) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이름, 생년월일, 태어난 시간, 성별을 모두 입력해주세요.')),
-      );
+    if (['사주', '연애운', '재물운', '직업운', '신년운세'].contains(topic) && mineEmpty) {
+      msg('이름, 생년월일, 태어난 시간, 성별을 모두 입력해주세요.');
       return;
     }
 
-    if (['궁합','재회운'].contains(topic) && (emptyMine || emptyPartner)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('두 사람 정보를 모두 입력해주세요.')),
-      );
-      return;
-    }
-    if (topic == '심리상담') {
-      setState(() => tab = 2);
+    if (['궁합', '재회운'].contains(topic) && (mineEmpty || partnerEmpty)) {
+      msg('두 사람 정보를 모두 입력해주세요.');
       return;
     }
 
     setState(() {
-      loading = true;
-      resultTitle = topic;
-      preview = 'AI가 $topic 분석 중입니다...';
-      fullResult = '';
-      detailOpen = false;
       tab = 1;
+      title = topic;
+      loading = true;
+      detailOpen = false;
+      preview = 'AI가 $topic 분석 중입니다...';
+      full = '';
     });
 
     try {
-      final res = await http.post(
+      final r = await http.post(
         Uri.parse('$apiBaseUrl/ai-fortune'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'topic': topic,
           'userInfo': {
-            'name': name.text,
-            'birth': birth.text,
-            'calendarType': isLunar ? '음력' : '양력',
-            'time': time.text,
-            'gender': gender.text,
+            'name': name.text.trim(),
+            'birth': birth.text.trim(),
+            'calendarType': lunar ? '음력' : '양력',
+            'time': time.text.trim(),
+            'gender': gender,
           },
           'partnerInfo': {
-            'name': partnerName.text,
-            'birth': partnerBirth.text,
-            'calendarType': partnerLunar ? '음력' : '양력',
-            'time': partnerTime.text,
-            'gender': partnerGender.text,
+            'name': pName.text.trim(),
+            'birth': pBirth.text.trim(),
+            'calendarType': pLunar ? '음력' : '양력',
+            'time': pTime.text.trim(),
+            'gender': pGender,
           },
           'relationshipInfo': {
-            'breakupDate': breakupDate.text,
-            'contactStatus': contactStatus.text,
-            'breakupReason': breakupReason.text,
+            'breakupDate': breakupDate.text.trim(),
+            'contactStatus': contactStatus.text.trim(),
+            'breakupReason': breakupReason.text.trim(),
           }
         }),
       );
 
-      final data = jsonDecode(res.body);
-      final text = (data['reply'] ?? data['result'] ?? data['error'] ?? '응답 없음').toString();
+      final data = jsonDecode(r.body);
+      final text = (data['reply'] ?? data['error'] ?? '응답 없음').toString();
+      final cut = text.length > 450 ? 450 : text.length;
 
       setState(() {
-        fullResult = text;
-        preview = text.length > 260 ? '${text.substring(0, 260)}...\n\n🔒 핵심 조언과 결론은 상세보기에서 확인하세요.' : text;
+        full = text;
+        preview = '${text.substring(0, cut)}\n\n🔒 핵심 결론과 상세 조언은 자세히 보기에서 확인하세요.';
         loading = false;
       });
     } catch (e) {
       setState(() {
         preview = 'AI 서버 연결 실패';
-        fullResult = 'AI 서버 연결 실패\n$e';
+        full = '$e';
         loading = false;
       });
     }
   }
 
-  void openDetail() {
-    if (fullResult.isEmpty || fullResult == 'AI 서버 연결 실패') return;
-    if (hearts <= 0) return;
+  void detail() {
+    if (full.isEmpty || loading) return;
+    if (hearts <= 0) {
+      msg('하트가 부족합니다.');
+      return;
+    }
     setState(() {
       hearts--;
       detailOpen = true;
@@ -172,30 +152,24 @@ class _AppState extends State<App> {
         birth: birth,
         time: time,
         gender: gender,
-        isLunar: isLunar,
-        setLunar: (v) => setState(() => isLunar = v),
-        partnerName: partnerName,
-        partnerBirth: partnerBirth,
-        partnerTime: partnerTime,
-        partnerGender: partnerGender,
-        partnerLunar: partnerLunar,
-        setPartnerLunar: (v) => setState(() => partnerLunar = v),
+        lunar: lunar,
+        pName: pName,
+        pBirth: pBirth,
+        pTime: pTime,
+        pGender: pGender,
+        pLunar: pLunar,
         breakupDate: breakupDate,
         contactStatus: contactStatus,
         breakupReason: breakupReason,
+        setGender: (v) => setState(() => gender = v),
+        setLunar: (v) => setState(() => lunar = v),
+        setPGender: (v) => setState(() => pGender = v),
+        setPLunar: (v) => setState(() => pLunar = v),
         pickDate: pickDate,
         pickTime: pickTime,
-        requestFortune: requestFortune,
+        fortune: fortune,
       ),
-      Result(
-        title: resultTitle,
-        preview: preview,
-        fullResult: fullResult,
-        detailOpen: detailOpen,
-        loading: loading,
-        hearts: hearts,
-        openDetail: openDetail,
-      ),
+      Result(title: title, preview: preview, full: full, loading: loading, detailOpen: detailOpen, hearts: hearts, detail: detail),
       Chat(hearts: hearts, useHeart: () => setState(() => hearts--)),
       Store(add: (v) => setState(() => hearts += v)),
       const Records(),
@@ -236,142 +210,107 @@ class Box extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.all(14),
     padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: C.card,
-      border: Border.all(color: C.gold),
-      borderRadius: BorderRadius.circular(24),
-    ),
+    decoration: BoxDecoration(color: C.card, border: Border.all(color: C.gold), borderRadius: BorderRadius.circular(24)),
     child: child,
   );
 }
 
 class Home extends StatelessWidget {
   const Home({
-    super.key,
-    required this.hearts,
-    required this.name,
-    required this.birth,
-    required this.time,
-    required this.gender,
-    required this.isLunar,
-    required this.setLunar,
-    required this.partnerName,
-    required this.partnerBirth,
-    required this.partnerTime,
-    required this.partnerGender,
-    required this.partnerLunar,
-    required this.setPartnerLunar,
-    required this.breakupDate,
-    required this.contactStatus,
-    required this.breakupReason,
-    required this.pickDate,
-    required this.pickTime,
-    required this.requestFortune,
+    super.key, required this.hearts, required this.name, required this.birth, required this.time,
+    required this.gender, required this.lunar, required this.pName, required this.pBirth,
+    required this.pTime, required this.pGender, required this.pLunar, required this.breakupDate,
+    required this.contactStatus, required this.breakupReason, required this.setGender,
+    required this.setLunar, required this.setPGender, required this.setPLunar,
+    required this.pickDate, required this.pickTime, required this.fortune,
   });
 
   final int hearts;
-  final TextEditingController name, birth, time, gender;
-  final bool isLunar;
-  final ValueChanged<bool> setLunar;
+  final TextEditingController name, birth, time, pName, pBirth, pTime, breakupDate, contactStatus, breakupReason;
+  final String gender, pGender;
+  final bool lunar, pLunar;
+  final ValueChanged<String> setGender, setPGender;
+  final ValueChanged<bool> setLunar, setPLunar;
+  final Future<void> Function(TextEditingController) pickDate, pickTime;
+  final Future<void> Function(String) fortune;
 
-  final TextEditingController partnerName, partnerBirth, partnerTime, partnerGender;
-  final bool partnerLunar;
-  final ValueChanged<bool> setPartnerLunar;
+  Widget field(String label, TextEditingController c, {VoidCallback? tap}) => TextField(
+    controller: c,
+    readOnly: tap != null,
+    onTap: tap,
+    style: const TextStyle(color: Colors.white),
+    decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(color: C.muted)),
+  );
 
-  final TextEditingController breakupDate, contactStatus, breakupReason;
-
-  final Future<void> Function(TextEditingController) pickDate;
-  final Future<void> Function(TextEditingController) pickTime;
-  final Future<void> Function(String) requestFortune;
+  Widget genderBox(String value, ValueChanged<String> set) => DropdownButton<String>(
+    value: value,
+    dropdownColor: C.card,
+    items: const [
+      DropdownMenuItem(value: '남자', child: Text('남자')),
+      DropdownMenuItem(value: '여자', child: Text('여자')),
+    ],
+    onChanged: (v) => set(v!),
+  );
 
   @override
   Widget build(BuildContext context) {
     final menus = ['사주', '연애운', '재물운', '직업운', '신년운세', '궁합', '재회운', '심리상담'];
-
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(14),
-        children: [
-          const Icon(Icons.auto_awesome, size: 90, color: C.gold),
-          const Text('관령이의 소름사주', textAlign: TextAlign.center, style: TextStyle(color: C.gold, fontSize: 30, fontWeight: FontWeight.bold)),
-          Text('보유 하트 $hearts', textAlign: TextAlign.center, style: const TextStyle(color: C.muted)),
-
-          Box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('내 기본정보', style: TextStyle(color: C.gold, fontSize: 20, fontWeight: FontWeight.bold)),
-            TextField(controller: name, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '이름')),
-            TextField(controller: birth, readOnly: true, onTap: () => pickDate(birth), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '생년월일 클릭 선택')),
-            Row(children: [
-              ChoiceChip(label: const Text('양력'), selected: !isLunar, onSelected: (_) => setLunar(false)),
-              const SizedBox(width: 8),
-              ChoiceChip(label: const Text('음력'), selected: isLunar, onSelected: (_) => setLunar(true)),
-            ]),
-            TextField(controller: time, readOnly: true, onTap: () => pickTime(time), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '태어난 시간 클릭 선택')),
-            TextField(controller: gender, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '성별 예: 남자/여자')),
-          ])),
-
-          Box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('상대 정보 - 궁합/재회운용', style: TextStyle(color: C.gold, fontSize: 20, fontWeight: FontWeight.bold)),
-            TextField(controller: partnerName, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '상대 이름')),
-            TextField(controller: partnerBirth, readOnly: true, onTap: () => pickDate(partnerBirth), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '상대 생년월일 클릭 선택')),
-            Row(children: [
-              ChoiceChip(label: const Text('상대 양력'), selected: !partnerLunar, onSelected: (_) => setPartnerLunar(false)),
-              const SizedBox(width: 8),
-              ChoiceChip(label: const Text('상대 음력'), selected: partnerLunar, onSelected: (_) => setPartnerLunar(true)),
-            ]),
-            TextField(controller: partnerTime, readOnly: true, onTap: () => pickTime(partnerTime), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '상대 태어난 시간 클릭 선택')),
-            TextField(controller: partnerGender, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '상대 성별')),
-            TextField(controller: breakupDate, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '헤어진 시기')),
-            TextField(controller: contactStatus, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '현재 연락 여부')),
-            TextField(controller: breakupReason, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: '이별 이유')),
-          ])),
-
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: menus.map((m) => ActionChip(label: Text(m), onPressed: () => requestFortune(m))).toList(),
-          ),
-          const Box(child: Center(child: Text('AdMob Banner Area', style: TextStyle(color: C.muted)))),
-        ],
-      ),
-    );
+    return SafeArea(child: ListView(padding: const EdgeInsets.all(14), children: [
+      const Icon(Icons.auto_awesome, size: 90, color: C.gold),
+      const Text('관령이의 소름사주', textAlign: TextAlign.center, style: TextStyle(color: C.gold, fontSize: 30, fontWeight: FontWeight.bold)),
+      Text('보유 하트 $hearts', textAlign: TextAlign.center, style: const TextStyle(color: C.muted)),
+      Box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('내 기본정보', style: TextStyle(color: C.gold, fontSize: 20, fontWeight: FontWeight.bold)),
+        field('이름', name),
+        field('생년월일 클릭 선택', birth, tap: () => pickDate(birth)),
+        Row(children: [
+          ChoiceChip(label: const Text('양력'), selected: !lunar, onSelected: (_) => setLunar(false)),
+          const SizedBox(width: 8),
+          ChoiceChip(label: const Text('음력'), selected: lunar, onSelected: (_) => setLunar(true)),
+        ]),
+        field('태어난 시간 클릭 선택', time, tap: () => pickTime(time)),
+        const SizedBox(height: 8),
+        Row(children: [const Text('성별: ', style: TextStyle(color: C.muted)), genderBox(gender, setGender)]),
+      ])),
+      Box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('상대 정보 - 궁합/재회운용', style: TextStyle(color: C.gold, fontSize: 20, fontWeight: FontWeight.bold)),
+        field('상대 이름', pName),
+        field('상대 생년월일 클릭 선택', pBirth, tap: () => pickDate(pBirth)),
+        Row(children: [
+          ChoiceChip(label: const Text('상대 양력'), selected: !pLunar, onSelected: (_) => setPLunar(false)),
+          const SizedBox(width: 8),
+          ChoiceChip(label: const Text('상대 음력'), selected: pLunar, onSelected: (_) => setPLunar(true)),
+        ]),
+        field('상대 태어난 시간 클릭 선택', pTime, tap: () => pickTime(pTime)),
+        Row(children: [const Text('상대 성별: ', style: TextStyle(color: C.muted)), genderBox(pGender, setPGender)]),
+        field('헤어진 시기', breakupDate),
+        field('현재 연락 여부', contactStatus),
+        field('이별 이유', breakupReason),
+      ])),
+      Wrap(spacing: 10, runSpacing: 10, children: menus.map((m) => ActionChip(label: Text(m), onPressed: () => fortune(m))).toList()),
+      const Box(child: Center(child: Text('AdMob Banner Area', style: TextStyle(color: C.muted)))),
+    ]));
   }
 }
 
 class Result extends StatelessWidget {
-  const Result({
-    super.key,
-    required this.title,
-    required this.preview,
-    required this.fullResult,
-    required this.detailOpen,
-    required this.loading,
-    required this.hearts,
-    required this.openDetail,
-  });
-
-  final String title, preview, fullResult;
-  final bool detailOpen, loading;
+  const Result({super.key, required this.title, required this.preview, required this.full, required this.loading, required this.detailOpen, required this.hearts, required this.detail});
+  final String title, preview, full;
+  final bool loading, detailOpen;
   final int hearts;
-  final VoidCallback openDetail;
+  final VoidCallback detail;
 
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(child: ListView(children: [
-      Box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('AI $title 결과', style: const TextStyle(color: C.gold, fontSize: 26, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        if (loading) const LinearProgressIndicator(),
-        const SizedBox(height: 12),
-        Text(detailOpen ? fullResult : preview, style: const TextStyle(color: Colors.white, height: 1.5)),
-        const SizedBox(height: 16),
-        Text('보유 하트 $hearts', style: const TextStyle(color: C.muted)),
-        ElevatedButton(
-          onPressed: detailOpen || loading ? null : openDetail,
-          child: Text(detailOpen ? '상세풀이 열림' : '자세히 보기 1하트'),
-        ),
-      ])),
-    ]));
-  }
+  Widget build(BuildContext context) => SafeArea(child: ListView(children: [
+    Box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('AI $title 결과', style: const TextStyle(color: C.gold, fontSize: 26, fontWeight: FontWeight.bold)),
+      if (loading) const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: LinearProgressIndicator()),
+      Text(detailOpen ? full : preview, style: const TextStyle(color: Colors.white, height: 1.55)),
+      const SizedBox(height: 14),
+      Text('보유 하트 $hearts', style: const TextStyle(color: C.muted)),
+      ElevatedButton(onPressed: detailOpen || loading ? null : detail, child: Text(detailOpen ? '상세풀이 열림' : '자세히 보기 1하트')),
+    ])),
+  ]));
 }
 
 class Chat extends StatefulWidget {
@@ -392,34 +331,19 @@ class _ChatState extends State<Chat> {
     if (text.isEmpty || loading) return;
     c.clear();
     setState(() { messages.add('나: $text'); loading = true; });
-
     try {
-      final res = await http.post(
-        Uri.parse('$apiBaseUrl/ai-chat'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': text}),
-      );
-      final data = jsonDecode(res.body);
-      setState(() {
-        messages.add('AI: ${data['reply'] ?? data['error'] ?? '응답 없음'}');
-        loading = false;
-      });
+      final r = await http.post(Uri.parse('$apiBaseUrl/ai-chat'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'message': text}));
+      final d = jsonDecode(r.body);
+      setState(() { messages.add('AI: ${d['reply'] ?? d['error'] ?? '응답 없음'}'); loading = false; });
       widget.useHeart();
     } catch (_) {
-      setState(() {
-        messages.add('AI: 서버 연결 실패');
-        loading = false;
-      });
+      setState(() { messages.add('AI: 서버 연결 실패'); loading = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) => SafeArea(child: Column(children: [
-    Box(child: Row(children: [
-      const Text('AI 상담 채팅', style: TextStyle(color: C.gold, fontSize: 22, fontWeight: FontWeight.bold)),
-      const Spacer(),
-      Text('하트 ${widget.hearts}', style: const TextStyle(color: C.muted)),
-    ])),
+    Box(child: Row(children: [const Text('AI 상담 채팅', style: TextStyle(color: C.gold, fontSize: 22, fontWeight: FontWeight.bold)), const Spacer(), Text('하트 ${widget.hearts}', style: const TextStyle(color: C.muted))])),
     Expanded(child: ListView(children: messages.map((m) => Box(child: Text(m, style: const TextStyle(color: Colors.white)))).toList())),
     if (loading) const LinearProgressIndicator(),
     Padding(padding: const EdgeInsets.all(12), child: Row(children: [
@@ -451,4 +375,3 @@ class Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const SafeArea(child: Box(child: Text('Railway AI 서버 연결 완료', style: TextStyle(color: Colors.white))));
 }
-
