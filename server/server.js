@@ -10,9 +10,7 @@ app.use(express.json({ limit: '1mb' }));
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-app.get('/health', (req, res) => {
-  res.json({ ok: true, service: 'sereum_app_server' });
-});
+app.get('/health', (req, res) => res.json({ ok: true, service: 'sereum_app_server' }));
 
 app.post('/ai-chat', async (req, res) => {
   try {
@@ -21,10 +19,12 @@ app.post('/ai-chat', async (req, res) => {
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
+      temperature: 0.8,
+      max_tokens: 1200,
       messages: [
-        { role: 'system', content: '너는 한국어 심리상담형 운세 상담사다. 따뜻하고 현실적으로 길게 답해라.' },
-        { role: 'user', content: message },
-      ],
+        { role: 'system', content: '너는 한국어 심리상담 AI다. 따뜻하고 현실적으로 상담하라.' },
+        { role: 'user', content: message }
+      ]
     });
 
     res.json({ reply: completion.choices[0].message.content });
@@ -37,36 +37,30 @@ app.post('/ai-fortune', async (req, res) => {
   try {
     const { topic, userInfo, partnerInfo, relationshipInfo } = req.body;
 
+    const topicPrompt = {
+      '사주': '사주는 연애운, 재물운, 직업운, 신년운세를 섞지 마라. 오직 타고난 기질, 성격, 강점, 약점, 인생 흐름, 현재 기운만 1800자 이상 분석해라.',
+      '연애운': '연애운만 봐라. 어떤 사람을 만날 가능성이 높은지, 상대 성향, 만남 경로, 끌리는 타입, 피해야 할 타입, 가까운 연애 흐름을 1800자 이상 분석해라.',
+      '재물운': '재물운만 봐라. 돈 버는 방식, 돈 새는 패턴, 소비 습관, 부업 가능성, 장사/직장 수입 흐름, 모으는 방법을 1800자 이상 분석해라.',
+      '직업운': '직업운만 봐라. 맞는 일, 안 맞는 일, 조직생활, 이직운, 성장 방향, 직장 내 평가를 1800자 이상 분석해라.',
+      '신년운세': '올해 운세만 봐라. 월별 흐름, 인간관계, 돈, 일, 조심할 시기를 1800자 이상 분석해라.',
+      '궁합': '두 사람 궁합만 봐라. 성향 차이, 끌림, 충돌 포인트, 장기궁합, 결혼/동거 궁합을 1800자 이상 분석해라.',
+      '재회운': '재회운만 봐라. 상대 심리, 재회 가능성, 연락 타이밍, 하면 안 되는 행동, 현실 조언을 1800자 이상 분석해라.'
+    }[topic] || '주제에 맞게 1800자 이상 분석해라.';
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0.85,
-      max_tokens: 1800,
+      max_tokens: 2200,
       messages: [
         {
           role: 'system',
-          content: `
-너는 한국어 프리미엄 사주/운세 앱의 전문 상담 AI다.
-답변은 절대 짧게 하지 마라.
-최소 1800자 이상으로 작성해라.
-사용자가 입력한 이름, 생년월일, 음력/양력, 태어난 시간, 성별을 반드시 반영해라.
-정보가 부족하면 부족하다고 말하되, 입력된 정보 기준으로 최대한 해석해라.
-사주, 연애운, 재물운, 직업운, 신년운세, 궁합, 재회운 주제에 맞게 완전히 다르게 답해라.
-구성:
-1. 전체 기운
-2. 성향 분석
-3. 현재 흐름
-4. 주제별 핵심 운세
-5. 조심해야 할 점
-6. 앞으로의 조언
-7. 핵심 결론
-의료, 법률, 투자 확정 표현은 피하고 현실 조언으로 말해라.
-`
+          content: `너는 한국어 프리미엄 사주/운세 상담 AI다. 반드시 사용자가 선택한 주제만 답해라. 다른 운세 항목을 섞지 마라. ${topicPrompt}`
         },
         {
           role: 'user',
-          content: JSON.stringify({ topic, userInfo, partnerInfo, relationshipInfo }),
-        },
-      ],
+          content: JSON.stringify({ topic, userInfo, partnerInfo, relationshipInfo })
+        }
+      ]
     });
 
     res.json({ reply: completion.choices[0].message.content });
@@ -75,6 +69,4 @@ app.post('/ai-fortune', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`sereum_app_server running on port ${port}`);
-});
+app.listen(port, () => console.log(`sereum_app_server running on port ${port}`));

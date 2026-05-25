@@ -1,6 +1,6 @@
 class AppConfig {
   static const String appName = "관령이의 소름사주";
-  static const String apiBaseUrl = "https://your-railway-app-url.up.railway.app"; // Replace with your Railway deployment URL
+  static const String apiBaseUrl = "https://sereumapp-production.up.railway.app"; // Production Railway URL
 
   // Ad config
   static const String bannerAdUnitId = "ca-app-pub-xxxxxxxxxxxxxxxx/banner";

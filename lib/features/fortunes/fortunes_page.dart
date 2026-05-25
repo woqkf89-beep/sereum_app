@@ -4,15 +4,16 @@ import '../../core/widgets/ornate.dart';
 import '../../core/i18n/strings.dart';
 import '../../core/theme/tokens.dart' as T;
 import '../fortunes/fortune_result_page.dart';
+import 'fortune_input_page.dart';
 
 class FortunesPage extends StatelessWidget {
   const FortunesPage({super.key});
 
-  void _navigateToResult(BuildContext context, String title) {
+  void _navigateToInput(BuildContext context, String topic) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => FortuneResultPage(title: title),
+        builder: (_) => FortuneInputPage(topic: topic),
       ),
     );
   }
@@ -39,35 +40,37 @@ class FortunesPage extends StatelessWidget {
               runSpacing: 10,
               children: [
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '사주'),
+                  onPressed: () => _navigateToInput(context, '사주'),
                   child: const Text('사주'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '연애운'),
+                  onPressed: () => _navigateToInput(context, '연애운'),
                   child: const Text('연애운'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '재물운'),
+                  onPressed: () => _navigateToInput(context, '재물운'),
                   child: const Text('재물운'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '직업운'),
+                  onPressed: () => _navigateToInput(context, '직업운'),
                   child: const Text('직업운'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '신년운세'),
+                  onPressed: () => _navigateToInput(context, '신년운세'),
                   child: const Text('신년운세'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '궁합'),
+                  onPressed: () => _navigateToInput(context, '궁합'),
                   child: const Text('궁합'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '재회운'),
+                  onPressed: () => _navigateToInput(context, '재회운'),
                   child: const Text('재회운'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _navigateToResult(context, '심리상담'),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/chat');
+                  },
                   child: const Text('심리상담'),
                 ),
               ],
